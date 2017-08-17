@@ -27,7 +27,7 @@ The app contains useful information about:
 - Supporting documentation
 - Detailed improvements to the model.
 
-These improvements will be added in the future
+Current accuracy is 29%, 27% and 21% for the top 5, 3 and 1 word predictions respectively
 
 Method / Prediction Algorithm
 ========================================================
@@ -35,7 +35,7 @@ Method / Prediction Algorithm
 - Extract n-gram phrases up to n = 4
 
 1. Extract (up to) the last 3 words from a phrase by the user
-2. Return top X last words from either quadgrams or trigrams datasets depending on user preference (next word prediction vs autocompletion)
+2. Return top 5 last words from either quadgrams or trigrams datasets depending on user preference (next word prediction vs autocompletion)
 3. If < 5 results found, repeat 2 with the last 2 words in phrase, using trigrams / bigrams datasets
 4. Repeat 3 using bigrams / unigrams for the last word in phrase
 
@@ -43,7 +43,7 @@ Improvements
 ========================================================
 - Try different data sets to broaden grammar use
 - The current algorithm uses maximum likelihood predictions only
-- Implement Katz' backoff / Kneser-Ney Smoothing models to improve prediction accuracy
+- Implement Katz's Backoff model to improve prediction accuracy
 - Include German and Russian predictions as well
 
 Please see the improvements section of the Shiny app for further details!

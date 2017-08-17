@@ -2,7 +2,7 @@ library(shiny)
 
 shinyUI(
      fluidPage(
-         titlePanel("Coursera Data Science Capstone - David Rothall (March 28th, 2017)"),
+         titlePanel("Coursera Data Science Capstone - David Rothall (March 28th, 2017, updated Aug 16, 2017)"),
              sidebarLayout(
                  sidebarPanel(
                      radioButtons("variable", "Prediction Type",
@@ -93,25 +93,43 @@ shinyUI(
                                             "to try another phrase."
                                             )
                                  ),
-                                 tabPanel("Improvements",
-                                          h3("Improving Grammar"),
-                                          p("Some styles of writing are missed in News, blogs and Twitter posts. ",
-                                            "Future attempts to cover the English language could include ",
-                                            "other sources geared towards flows of conversation as opposed to ",
-                                            "simply relaying information from the writer to the reader."
-                                          ),
+                                 tabPanel("Notes / Improvements",
+                                          h3("Algorithm speed"),
+                                          p("The search algorithm originally used the grep function, which took ",
+                                            "up to 400 milliseconds depending on how many n-gram sets it needed to search. ",
+                                            "Using the startswith() function the model was reduced to 35ms. ",
+                                            "This can be improved with faster lookups but I'm not sure how to ",
+                                            "quickly filter data tables by keys; grep still takes way too long here."),
                                           h3("Improving Prediction Accuracy"),
-                                          p("The algorithm currently uses maximum likelihood estimates and so may ",
-                                            "not be as accurate with phrases not found in the quadgram list. ",
-                                            "Current prediction accuracy is 15, 24 and 28% for the top 1, 3 and 5 ",
-                                            "word predictions respectively. ",
-                                            "Katz's backoff or Kneser-Ney smoothing models allow ",
-                                            "for backoff probabilities for smaller phrases if the larger phrases ",
-                                            "aren't observed. These models are likely to be more accurate."
-                                            ),
-                                          h3("Predicting from Multiple languages"),
-                                          p("The corpus only covers English at this stage ",
-                                            "however German and Russian articles are also available in the dataset.")
+                                          p("The model joins maximum likelihood estimates prioritising from the ",
+                                            "quadgram set first followed by trigrams, bigrams then unigrams, so ",
+                                            "if the top 5 predictions need to be created from multiple n-gram ",
+                                            "lists they will do so in that order. Future modeling would include ",
+                                            "implementing Katz's Backoff model which is similar but allows for a ",
+                                            "few extra parameters in choosing the relative strengths of higher ",
+                                            "n-gram likelihoods compared to backoff probabilities of (n-1)-grams.",
+                                            "Current prediction accuracy is 21, 27 and 29% for the top 1, 3 and 5 ",
+                                            "word predictions respectively, using testing data from news, blogs ",
+                                            "and Twitter datasets."),
+                                          h3("Improving Grammar"),
+                                          p("Some styles of writing are missed in news articles, blogs and Twitter ",
+                                            "posts. Prediction accuracy for phrases geared towards actual flows of ",
+                                            "conversation are likely to be reduced as the phrasing will be ",
+                                            "slightly different. Future attempts to cover the English language ",
+                                            "could include those from either books or interviews as opposed to ",
+                                            "simply relaying information from the writer to the reader."),
+
+                                          h3("Model Size / Usability"),
+                                          p("The model size is relatively small (5MB zipped / 20MB ",
+                                            "unzipped) and so it loads quickly, at least for one user. ",
+                                            "As R is a single threaded application, the Shiny app ",
+                                            "can only handle one user's request at a time. Thus it can handle ",
+                                            "1000/35 ~ 30 requests / second minus any extra work the Shiny app ",
+                                            "itself needs to do. The memory usage according to the ",
+                                            "Shiny dashboard is around 60MB per user if they try 10 - 20 phrases. ",
+                                            "With the default free 1GB ",
+                                            "plan the app can handle up to around 15 concurrent users. ",
+                                            "I assume the waiting time would be too high if there were more users.")
                                  )
                      )
                  )

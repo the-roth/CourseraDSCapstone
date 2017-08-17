@@ -8,10 +8,10 @@ bigrams = fread("bigrams.txt", header=T)
 trigrams = fread("trigrams.txt", header=T)
 quadgrams = fread("quadgrams.txt", header=T)
 
-setkey(unigrams, term)
-setkey(bigrams, term)
-setkey(trigrams, term)
-setkey(quadgrams, term)
+#setkey(unigrams, term)
+#setkey(bigrams, term)
+#setkey(trigrams, term)
+#setkey(quadgrams, term)
 
 unigrams = unigrams[order(-occurrences)]
 bigrams = bigrams[order(-occurrences)]
@@ -28,14 +28,13 @@ oneLessWord <- function(wordlist) {
     tail(wordlist, length(wordlist) - 1)
 }
 
-# construct a regular expression term to search our word frequency lists
-regexPhrase <- function(wordlist, lastCharIsSpace=FALSE) {
+# make a search phrase for startswith(), where last char is a space or not
+searchPhrase <- function(wordlist, lastCharIsSpace=FALSE) {
     restoredPhrase <- paste(wordlist, '', collapse='')
-    regex = paste('^', restoredPhrase, sep='')
     if(lastCharIsSpace == FALSE){
-        regex = stri_sub(regex, from=1, to=-2)
+        return(stri_sub(restoredPhrase, from=1, to=-2))
     }
-    return(regex)
+    return(restoredPhrase)
 }
 
 # Choose which n-gram set to use
@@ -58,7 +57,7 @@ nGramList <- function(number){
 # If the phrase ends in a space, search quadgrams list and
 # return the last word of each quadgram in order of frequency.
 # If phrase ends in a character, return last words of trigrams instead.
-# This acts to autocomplete a word instead.
+# This acts to autocomplete a word rather than the next predicted word.
 # Repeat the process with trigrams/bigrams, then bigrams/unigrams.
 # Return empty data frame if no results are found.
 topXPreds <- function(phrase, numPreds=5) {
@@ -83,11 +82,13 @@ topXPreds <- function(phrase, numPreds=5) {
     while(i > 0){
         #print(i)
         if(length(lastXWords) == i){
-            regex = regexPhrase(lastXWords, lastCharIsSpace=isSpace)
-            searchIndices = grep(regex, nGramList(numWords)$term)
+            phrase = searchPhrase(lastXWords, lastCharIsSpace=isSpace)
+            searchIndices = which(startsWith(nGramList(numWords)$term, phrase))
             if(length(searchIndices) > 0){
                 numOfRows = min(length(searchIndices), numPreds) # limit rows returned to < 5
-                predsFound = nGramList(numWords)[searchIndices,][order(-occurrences)][1:numOfRows,]
+                # Don't need to reorder preds, the n-gram list is already ordered
+                predsFound = nGramList(numWords)[searchIndices,][1:numOfRows,]
+                #predsFound = nGramList(numWords)[searchIndices,][order(-occurrences)][1:numOfRows,]
                 words = sapply(predsFound$term, function(x) endOfPhrase(x,1),
                                USE.NAMES=FALSE)
                 predsFound$word = words
@@ -120,24 +121,23 @@ topXPreds <- function(phrase, numPreds=5) {
 
 werePredsFound <- function(preds){
     #a successful pred call has class data.table and data.frame, so...
-    if(nrow(preds)==0){
-        return("Please enter a phrase.")
+    if(nrow(preds)==0 || is.na(preds[[1]])){
+        return("Please enter a phrase, or try again.")
     }
     return("The top matching predictions found are:")
 }
 
-
 shinyServer(function(input, output) {
 
     phraseUsed <- reactive({
-        werePredsFound(topXPreds(paste0(input$phrase, input$variable),
+        werePredsFound(topXPreds(paste0(trimws(input$phrase), input$variable),
                                  numPreds=5))
     })
 
     output$predictions <- phraseUsed
     
     output$predTable <- renderTable(
-        topXPreds(paste0(input$phrase, input$variable), numPreds=5)[,1:2]
+        topXPreds(paste0(trimws(input$phrase), input$variable), numPreds=5)[,1:2]
     )    
 
 })
